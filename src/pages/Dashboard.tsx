@@ -96,15 +96,15 @@ const Dashboard = () => {
       </header>
 
       <main className="px-4 py-6">
-        <div className="grid gap-4 grid-cols-2 mb-6">
-          <Card className="p-4 px-[10px] py-[10px]">
-            <p className="text-xs text-muted-foreground mb-1">Total Groups</p>
-            <p className="text-2xl font-bold">{groups.length}</p>
-          </Card>
-          <Card className="p-4">
-            <p className="text-xs text-muted-foreground mb-1">Active Trips</p>
-            <p className="text-2xl font-bold">{groups.length}</p>
-          </Card>
+        <div className="flex gap-3 mb-5">
+          <div className="flex items-center gap-2 px-3 py-2 rounded-lg bg-muted/50">
+            <span className="text-lg font-semibold">{groups.length}</span>
+            <span className="text-xs text-muted-foreground">Groups</span>
+          </div>
+          <div className="flex items-center gap-2 px-3 py-2 rounded-lg bg-muted/50">
+            <span className="text-lg font-semibold">{groups.length}</span>
+            <span className="text-xs text-muted-foreground">Active</span>
+          </div>
         </div>
 
         <div className="flex items-center justify-between mb-4">
