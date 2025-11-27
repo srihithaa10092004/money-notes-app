@@ -1,6 +1,3 @@
-import { Card } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
 import { Users, ArrowRight } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 
@@ -20,33 +17,20 @@ export function GroupCard({ group }: GroupCardProps) {
   const navigate = useNavigate();
 
   return (
-    <Card 
-      className="p-4 active:scale-98 transition-all cursor-pointer"
+    <div 
+      className="flex items-center justify-between px-3 py-3 rounded-lg bg-card border active:scale-[0.99] transition-all cursor-pointer"
       onClick={() => navigate(`/group/${group.id}`)}
     >
-      <div className="space-y-3">
-        <div className="flex items-start justify-between gap-3">
-          <div className="flex-1 min-w-0">
-            <h3 className="font-semibold text-base truncate mb-1">
-              {group.name}
-            </h3>
-            {group.description && (
-              <p className="text-sm text-muted-foreground line-clamp-2">
-                {group.description}
-              </p>
-            )}
-          </div>
-          <Badge variant="outline" className="shrink-0">{group.currency}</Badge>
+      <div className="flex items-center gap-3 min-w-0 flex-1">
+        <div className="h-9 w-9 rounded-full bg-primary/10 flex items-center justify-center shrink-0">
+          <Users className="h-4 w-4 text-primary" />
         </div>
-
-        <div className="flex items-center justify-between pt-3 border-t">
-          <div className="flex items-center gap-2 text-sm text-muted-foreground">
-            <Users className="h-4 w-4" />
-            <span>0 members</span>
-          </div>
-          <ArrowRight className="h-4 w-4 text-muted-foreground" />
+        <div className="min-w-0 flex-1">
+          <h3 className="font-medium text-sm truncate">{group.name}</h3>
+          <p className="text-xs text-muted-foreground">{group.currency}</p>
         </div>
       </div>
-    </Card>
+      <ArrowRight className="h-4 w-4 text-muted-foreground shrink-0" />
+    </div>
   );
 }
