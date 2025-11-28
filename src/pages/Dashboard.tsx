@@ -32,7 +32,7 @@ const Dashboard = () => {
     } = supabase.auth.onAuthStateChange((event, session) => {
       setSession(session);
       if (!session) {
-        navigate("/auth");
+        navigate("/");
       }
     });
     supabase.auth.getSession().then(({
@@ -42,7 +42,7 @@ const Dashboard = () => {
     }) => {
       setSession(session);
       if (!session) {
-        navigate("/auth");
+        navigate("/");
       } else {
         fetchGroups();
       }
@@ -73,7 +73,7 @@ const Dashboard = () => {
   };
   const handleSignOut = async () => {
     await supabase.auth.signOut();
-    navigate("/auth");
+    navigate("/");
   };
   if (loading) {
     return <div className="min-h-screen bg-background flex items-center justify-center">

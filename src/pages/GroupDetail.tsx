@@ -137,7 +137,7 @@ const GroupDetail = () => {
         description: error.message || "Failed to fetch group data",
         variant: "destructive",
       });
-      navigate("/");
+      navigate("/dashboard");
     } finally {
       setLoading(false);
     }
@@ -201,7 +201,7 @@ const GroupDetail = () => {
       <header className="border-b bg-background/95 backdrop-blur-sm sticky top-0 z-10 safe-top">
         <div className="px-4 py-4">
           <div className="flex items-center gap-3 mb-3">
-            <Button variant="ghost" size="icon" onClick={() => navigate("/")}>
+            <Button variant="ghost" size="icon" onClick={() => navigate("/dashboard")}>
               <ArrowLeft className="h-5 w-5" />
             </Button>
             <div className="flex-1 min-w-0">
