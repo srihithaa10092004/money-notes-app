@@ -135,7 +135,7 @@ const JoinGroup = () => {
           <XCircle className="h-16 w-16 text-destructive mx-auto mb-4" />
           <h2 className="text-2xl font-bold mb-2">Invalid Invite</h2>
           <p className="text-muted-foreground mb-6">{error}</p>
-          <Button onClick={() => navigate("/")} className="w-full">
+          <Button onClick={() => navigate("/dashboard")} className="w-full">
             Go to Dashboard
           </Button>
         </Card>
