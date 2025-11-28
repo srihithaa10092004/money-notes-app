@@ -28,31 +28,43 @@ const Landing = () => {
       icon: Users,
       title: "Group Expenses",
       description: "Create groups for trips, roommates, or events and track who owes what effortlessly.",
+      animation: { scale: [1, 1.1, 1], transition: { duration: 0.5, repeat: Infinity, repeatDelay: 2 } },
+      hoverAnimation: { scale: 1.2, rotate: [0, -10, 10, 0] },
     },
     {
       icon: Receipt,
       title: "Smart Receipt Scanning",
       description: "Snap a photo of your receipt and let AI automatically extract the details.",
+      animation: { y: [0, -3, 0], transition: { duration: 1.5, repeat: Infinity, repeatDelay: 1 } },
+      hoverAnimation: { scale: 1.15, y: -5 },
     },
     {
       icon: Globe,
       title: "Multi-Currency Support",
       description: "Travel abroad? Handle expenses in any currency with automatic conversion.",
+      animation: { rotate: [0, 360], transition: { duration: 8, repeat: Infinity } },
+      hoverAnimation: { scale: 1.2 },
     },
     {
       icon: PieChart,
       title: "Settlement Optimization",
       description: "Minimize the number of transactions needed to settle up within your group.",
+      animation: { rotate: [0, 15, -15, 0], transition: { duration: 3, repeat: Infinity, repeatDelay: 1 } },
+      hoverAnimation: { scale: 1.2, rotate: 180 },
     },
     {
       icon: Wallet,
       title: "Expense Categories",
       description: "Organize expenses by category and gain insights into your spending patterns.",
+      animation: { scale: [1, 1.05, 1], transition: { duration: 2, repeat: Infinity } },
+      hoverAnimation: { scale: 1.15, y: -3 },
     },
     {
       icon: Shield,
       title: "Secure & Private",
       description: "Your financial data is encrypted and only visible to your group members.",
+      animation: { opacity: [1, 0.7, 1], transition: { duration: 2, repeat: Infinity } },
+      hoverAnimation: { scale: 1.2, rotate: 5 },
     },
   ];
 
@@ -237,11 +249,11 @@ const Landing = () => {
                   borderColor: "hsl(var(--primary) / 0.3)"
                 }}
                 transition={{ type: "spring", stiffness: 300, damping: 20 }}
-                className="p-6 rounded-xl bg-background border border-border/50 cursor-pointer"
+                className="p-6 rounded-xl bg-background border border-border/50 cursor-pointer group"
               >
                 <motion.div
-                  initial={{ scale: 1 }}
-                  whileHover={{ scale: 1.1, rotate: 5 }}
+                  animate={feature.animation}
+                  whileHover={feature.hoverAnimation}
                   transition={{ type: "spring", stiffness: 400, damping: 10 }}
                   className="p-3 bg-primary/10 rounded-lg w-fit mb-4"
                 >
