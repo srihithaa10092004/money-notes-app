@@ -65,6 +65,23 @@ const paymentModes = [
   { value: "other", label: "Other", icon: MoreHorizontal },
 ];
 
+// Keyword to category mapping for auto-suggestions
+const categoryKeywords: Record<string, string[]> = {
+  "Food & Dining": ["food", "lunch", "dinner", "breakfast", "restaurant", "cafe", "coffee", "pizza", "burger", "meal", "eat", "snack", "biryani", "swiggy", "zomato", "uber eats", "dominos", "kfc", "mcdonalds"],
+  "Transport": ["uber", "ola", "cab", "taxi", "bus", "train", "metro", "fuel", "petrol", "diesel", "gas", "auto", "rickshaw", "parking", "toll", "flight", "travel"],
+  "Shopping": ["shopping", "amazon", "flipkart", "myntra", "clothes", "shoes", "dress", "shirt", "purchase", "buy", "mall", "store", "market"],
+  "Entertainment": ["movie", "netflix", "spotify", "prime", "hotstar", "disney", "cinema", "theater", "concert", "game", "gaming", "subscription"],
+  "Bills & Utilities": ["bill", "electricity", "water", "internet", "wifi", "broadband", "mobile", "phone", "recharge", "dth", "gas bill", "maintenance"],
+  "Health": ["medicine", "medical", "doctor", "hospital", "pharmacy", "health", "gym", "fitness", "vaccine", "treatment", "checkup"],
+  "Groceries": ["grocery", "vegetables", "fruits", "milk", "bread", "eggs", "supermarket", "bigbasket", "blinkit", "zepto", "instamart", "dmart"],
+  "Education": ["book", "course", "udemy", "education", "school", "college", "tuition", "fees", "exam", "study", "learning"],
+  "Rent": ["rent", "house rent", "room rent", "accommodation", "pg", "hostel"],
+  "Salary": ["salary", "income", "payment", "wages", "bonus", "incentive", "stipend"],
+  "Investment": ["investment", "mutual fund", "stocks", "shares", "sip", "fd", "fixed deposit", "savings"],
+  "Gift": ["gift", "present", "birthday", "anniversary", "wedding"],
+  "Personal Care": ["salon", "haircut", "spa", "beauty", "cosmetics", "makeup", "skincare"],
+};
+
 export function AddTransactionDrawer({
   open,
   onOpenChange,
@@ -82,6 +99,31 @@ export function AddTransactionDrawer({
   const [notes, setNotes] = useState("");
   const [paymentMode, setPaymentMode] = useState("cash");
   const [date, setDate] = useState<Date>(new Date());
+  const [suggestedCategory, setSuggestedCategory] = useState<string | null>(null);
+
+  // Auto-suggest category based on title keywords
+  useEffect(() => {
+    if (!title.trim() || category) {
+      setSuggestedCategory(null);
+      return;
+    }
+
+    const lowerTitle = title.toLowerCase();
+    
+    for (const [cat, keywords] of Object.entries(categoryKeywords)) {
+      for (const keyword of keywords) {
+        if (lowerTitle.includes(keyword)) {
+          // Only suggest if the category exists in available categories or is a valid one
+          if (categories.includes(cat) || Object.keys(categoryKeywords).includes(cat)) {
+            setSuggestedCategory(cat);
+            return;
+          }
+        }
+      }
+    }
+    
+    setSuggestedCategory(null);
+  }, [title, category, categories]);
 
   useEffect(() => {
     if (editingTransaction) {
@@ -248,6 +290,33 @@ export function AddTransactionDrawer({
                 onChange={(e) => setTitle(e.target.value)}
                 className="h-12 text-lg border-2 focus:border-primary transition-colors"
               />
+              
+              {/* Category Suggestion Chip */}
+              <AnimatePresence>
+                {suggestedCategory && !category && (
+                  <motion.div
+                    initial={{ opacity: 0, y: -10, scale: 0.95 }}
+                    animate={{ opacity: 1, y: 0, scale: 1 }}
+                    exit={{ opacity: 0, y: -10, scale: 0.95 }}
+                    transition={{ duration: 0.2 }}
+                    className="flex items-center gap-2 mt-2"
+                  >
+                    <span className="text-xs text-muted-foreground">Suggested:</span>
+                    <motion.button
+                      onClick={() => {
+                        setCategory(suggestedCategory);
+                        setSuggestedCategory(null);
+                      }}
+                      className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-medium bg-primary/10 text-primary border border-primary/20 hover:bg-primary/20 transition-colors"
+                      whileHover={{ scale: 1.02 }}
+                      whileTap={{ scale: 0.98 }}
+                    >
+                      <Tag className="h-3 w-3" />
+                      {suggestedCategory}
+                    </motion.button>
+                  </motion.div>
+                )}
+              </AnimatePresence>
             </motion.div>
 
             {/* Amount Field - Large & Prominent */}
