@@ -129,18 +129,6 @@ export function GroupInviteDialog({
               />
             </div>
 
-            {/* Invite Code */}
-            <div className="space-y-2">
-              <p className="text-sm font-medium">Invite Code</p>
-              <div className="flex gap-2">
-                <Input
-                  value={inviteCode}
-                  readOnly
-                  className="text-center text-lg font-mono tracking-wider"
-                />
-              </div>
-            </div>
-
             {/* Invite Link */}
             <div className="space-y-2">
               <p className="text-sm font-medium">Invite Link</p>
