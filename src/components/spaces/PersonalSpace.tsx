@@ -260,13 +260,13 @@ export function PersonalSpace() {
                 </Button>
               </motion.div>
             ) : (
-              <div className="space-y-2">
+              <div className="flex flex-wrap gap-2">
                 {transactions.map((transaction, index) => (
                   <motion.div
                     key={transaction.id}
-                    initial={{ opacity: 0, y: 10 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ delay: 0.25 + index * 0.03 }}
+                    initial={{ opacity: 0, scale: 0.9 }}
+                    animate={{ opacity: 1, scale: 1 }}
+                    transition={{ delay: 0.1 + index * 0.02 }}
                   >
                     <TransactionCard
                       transaction={transaction}
