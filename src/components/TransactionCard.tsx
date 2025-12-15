@@ -48,43 +48,31 @@ export function TransactionCard({ transaction, onEdit, onDelete }: TransactionCa
   const isIncome = transaction.type === "income";
 
   return (
-    <div className="flex items-center gap-2.5 px-3 py-2 rounded-lg bg-card border hover:bg-accent/30 transition-colors">
-      <div className={`p-1.5 rounded-full shrink-0 ${isIncome ? 'bg-emerald-500/10' : 'bg-rose-500/10'}`}>
-        {isIncome ? (
-          <ArrowUpCircle className="h-4 w-4 text-emerald-500" />
-        ) : (
-          <ArrowDownCircle className="h-4 w-4 text-rose-500" />
-        )}
-      </div>
+    <div className={`inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-full border transition-colors ${
+      isIncome ? 'bg-emerald-500/5 border-emerald-500/20 hover:bg-emerald-500/10' : 'bg-rose-500/5 border-rose-500/20 hover:bg-rose-500/10'
+    }`}>
+      {isIncome ? (
+        <ArrowUpCircle className="h-3.5 w-3.5 text-emerald-500 shrink-0" />
+      ) : (
+        <ArrowDownCircle className="h-3.5 w-3.5 text-rose-500 shrink-0" />
+      )}
       
-      <div className="flex-1 min-w-0">
-        <div className="flex items-center justify-between gap-2">
-          <p className="font-medium text-sm truncate">
-            {transaction.category || (isIncome ? "Income" : "Expense")}
-          </p>
-          <span className={`font-semibold text-sm shrink-0 ${isIncome ? 'text-emerald-500' : 'text-rose-500'}`}>
-            {isIncome ? '+' : '-'}${Number(transaction.amount).toFixed(2)}
-          </span>
-        </div>
-        <div className="flex items-center gap-2 mt-0.5">
-          <span className="text-xs text-muted-foreground">
-            {format(new Date(transaction.transaction_date), "MMM d")}
-          </span>
-          {transaction.payment_mode && (
-            <span className="flex items-center gap-0.5 text-xs text-muted-foreground">
-              {paymentModeIcons[transaction.payment_mode] || paymentModeIcons.other}
-            </span>
-          )}
-          {transaction.notes && (
-            <span className="text-xs text-muted-foreground truncate">{transaction.notes}</span>
-          )}
-        </div>
-      </div>
+      <span className="text-xs font-medium truncate max-w-[80px]">
+        {transaction.category || (isIncome ? "Income" : "Expense")}
+      </span>
+      
+      <span className={`text-xs font-bold shrink-0 ${isIncome ? 'text-emerald-600' : 'text-rose-600'}`}>
+        {isIncome ? '+' : '-'}${Number(transaction.amount).toFixed(0)}
+      </span>
+      
+      <span className="text-[10px] text-muted-foreground shrink-0">
+        {format(new Date(transaction.transaction_date), "MMM d")}
+      </span>
 
       <DropdownMenu>
         <DropdownMenuTrigger asChild>
-          <Button variant="ghost" size="icon" className="h-7 w-7 shrink-0">
-            <MoreVertical className="h-3.5 w-3.5" />
+          <Button variant="ghost" size="icon" className="h-5 w-5 shrink-0 -mr-1">
+            <MoreVertical className="h-3 w-3" />
           </Button>
         </DropdownMenuTrigger>
         <DropdownMenuContent align="end">
