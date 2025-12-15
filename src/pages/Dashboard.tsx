@@ -1,15 +1,23 @@
-import { useState, useEffect, useRef, useCallback } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/use-toast";
-import { Settings, ScanBarcode } from "lucide-react";
+import { Settings, ScanBarcode, LogOut, User } from "lucide-react";
 import { Session } from "@supabase/supabase-js";
 import { BarcodeScanner } from "@/components/BarcodeScanner";
 import { SpaceSwitcher, GroupSpace, PersonalSpace } from "@/components/spaces";
 import logo from "@/assets/logo.png";
 import { cn } from "@/lib/utils";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 type Space = "groups" | "personal";
 type Group = {
   id: string;
@@ -58,6 +66,19 @@ const Dashboard = () => {
       title: "Barcode Scanned",
       description: `Code: ${result}`
     });
+  };
+
+  const handleLogout = async () => {
+    await supabase.auth.signOut();
+    navigate("/");
+  };
+
+  const getUserInitials = () => {
+    const email = session?.user?.email;
+    if (email) {
+      return email.substring(0, 2).toUpperCase();
+    }
+    return "U";
   };
   useEffect(() => {
     const {
@@ -186,14 +207,34 @@ const Dashboard = () => {
                 <ScanBarcode className="h-5 w-5" />
               </Button>
             )}
-            <Button 
-              variant="ghost" 
-              size="icon" 
-              className="h-9 w-9 rounded-full hover:bg-muted"
-              onClick={() => navigate("/settings")}
-            >
-              <Settings className="h-5 w-5" />
-            </Button>
+            
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button variant="ghost" size="icon" className="h-9 w-9 rounded-full p-0">
+                  <Avatar className="h-9 w-9">
+                    <AvatarImage src="" />
+                    <AvatarFallback className="bg-primary text-primary-foreground text-sm font-medium">
+                      {getUserInitials()}
+                    </AvatarFallback>
+                  </Avatar>
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end" className="w-48 bg-background border shadow-lg">
+                <DropdownMenuItem onClick={() => navigate("/settings")} className="cursor-pointer">
+                  <User className="mr-2 h-4 w-4" />
+                  Profile
+                </DropdownMenuItem>
+                <DropdownMenuItem onClick={() => navigate("/settings")} className="cursor-pointer">
+                  <Settings className="mr-2 h-4 w-4" />
+                  Settings
+                </DropdownMenuItem>
+                <DropdownMenuSeparator />
+                <DropdownMenuItem onClick={handleLogout} className="cursor-pointer text-destructive focus:text-destructive">
+                  <LogOut className="mr-2 h-4 w-4" />
+                  Logout
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
           </div>
         </div>
       </motion.nav>
