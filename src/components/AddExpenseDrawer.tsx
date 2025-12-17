@@ -25,6 +25,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { z } from "zod";
+import { notifyGroupMembers } from "@/utils/notifications";
 
 type Member = {
   id: string;
@@ -224,6 +225,16 @@ export function AddExpenseDrawer({
         .insert(splits);
 
       if (splitsError) throw splitsError;
+
+      // Notify group members
+      await notifyGroupMembers({
+        groupId,
+        excludeUserId: user.id,
+        type: 'expense_added',
+        title: 'New Expense Added',
+        message: `${description.trim()} - ${groupCurrency} ${parseFloat(amount).toFixed(2)}`,
+        relatedId: expense.id
+      });
 
       toast({
         title: "Expense added",
