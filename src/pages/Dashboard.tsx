@@ -18,6 +18,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import { NotificationBell } from "@/components/notifications/NotificationBell";
 type Space = "groups" | "personal";
 type Group = {
   id: string;
@@ -207,6 +208,8 @@ const Dashboard = () => {
                 <ScanBarcode className="h-5 w-5" />
               </Button>
             )}
+            
+            <NotificationBell />
             
             <DropdownMenu>
               <DropdownMenuTrigger asChild>

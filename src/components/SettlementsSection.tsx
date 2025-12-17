@@ -16,6 +16,7 @@ import {
 import { useToast } from "@/hooks/use-toast";
 import { ArrowRight, CheckCircle2, Loader2, TrendingUp } from "lucide-react";
 import { calculateOptimalSettlements, type Balance, type Settlement } from "@/utils/settlementCalculator";
+import { createNotification } from "@/utils/notifications";
 
 type SettlementsSectionProps = {
   groupId: string;
@@ -67,6 +68,19 @@ export function SettlementsSection({
         });
 
       if (error) throw error;
+
+      // Notify the other party in the settlement
+      const otherUserId = settlement.from_user_id === user.id 
+        ? settlement.to_user_id 
+        : settlement.from_user_id;
+      
+      await createNotification({
+        userId: otherUserId,
+        type: 'settlement_created',
+        title: 'Payment Settled',
+        message: `${settlement.from_user_name} paid ${groupCurrency} ${settlement.amount.toFixed(2)} to ${settlement.to_user_name}`,
+        groupId,
+      });
 
       toast({
         title: "Settlement recorded!",
