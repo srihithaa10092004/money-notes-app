@@ -22,6 +22,7 @@ import { format } from "date-fns";
 import type { RealtimeChannel } from "@supabase/supabase-js";
 import { GroupNotes } from "./GroupNotes";
 import { ExpenseAttachDialog } from "./ExpenseAttachDialog";
+import { MAX_LENGTHS } from "@/utils/validation";
 
 type TypingUser = {
   user_id: string;
@@ -966,13 +967,20 @@ export function ChatDialog({
                             placeholder={replyingTo ? "Type your reply..." : "Type a message..."}
                             value={newMessage}
                             onChange={(e) => {
-                              setNewMessage(e.target.value);
-                              if (e.target.value) handleTyping();
+                              const value = e.target.value.slice(0, MAX_LENGTHS.messageContent);
+                              setNewMessage(value);
+                              if (value) handleTyping();
                             }}
                             onKeyPress={handleKeyPress}
                             disabled={sending}
                             className="pr-10 rounded-full bg-muted border-0"
+                            maxLength={MAX_LENGTHS.messageContent}
                           />
+                          {newMessage.length > 0 && (
+                            <span className={`absolute -top-5 right-0 text-xs ${newMessage.length > MAX_LENGTHS.messageContent * 0.9 ? 'text-destructive' : 'text-muted-foreground'}`}>
+                              {newMessage.length}/{MAX_LENGTHS.messageContent}
+                            </span>
+                          )}
                           <Button
                             variant="ghost"
                             size="icon"
