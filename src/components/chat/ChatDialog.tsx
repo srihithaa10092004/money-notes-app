@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { useToast } from "@/hooks/use-toast";
 import { 
   X, Send, Loader2, Paperclip, FileText, Reply, 
@@ -23,6 +24,7 @@ import type { RealtimeChannel } from "@supabase/supabase-js";
 import { GroupNotes } from "./GroupNotes";
 import { ExpenseAttachDialog } from "./ExpenseAttachDialog";
 import { MAX_LENGTHS } from "@/utils/validation";
+import EmojiPicker, { Theme, EmojiClickData } from "emoji-picker-react";
 
 type TypingUser = {
   user_id: string;
@@ -94,6 +96,7 @@ export function ChatDialog({
   const [editContent, setEditContent] = useState("");
   const [showExpenseDialog, setShowExpenseDialog] = useState(false);
   const [expenseSuggestion, setExpenseSuggestion] = useState<{ amount: string; description: string } | null>(null);
+  const [showEmojiPicker, setShowEmojiPicker] = useState(false);
   
   const scrollRef = useRef<HTMLDivElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -981,14 +984,38 @@ export function ChatDialog({
                               {newMessage.length}/{MAX_LENGTHS.messageContent}
                             </span>
                           )}
-                          <Button
-                            variant="ghost"
-                            size="icon"
-                            className="absolute right-1 top-1/2 -translate-y-1/2 h-7 w-7"
-                            disabled
-                          >
-                            <Smile className="h-4 w-4 text-muted-foreground" />
-                          </Button>
+                          <Popover open={showEmojiPicker} onOpenChange={setShowEmojiPicker}>
+                            <PopoverTrigger asChild>
+                              <Button
+                                variant="ghost"
+                                size="icon"
+                                className="absolute right-1 top-1/2 -translate-y-1/2 h-7 w-7"
+                                type="button"
+                              >
+                                <Smile className="h-4 w-4 text-muted-foreground" />
+                              </Button>
+                            </PopoverTrigger>
+                            <PopoverContent 
+                              className="w-auto p-0 border-0" 
+                              side="top" 
+                              align="end"
+                              sideOffset={10}
+                            >
+                              <EmojiPicker
+                                onEmojiClick={(emojiData: EmojiClickData) => {
+                                  const newValue = (newMessage + emojiData.emoji).slice(0, MAX_LENGTHS.messageContent);
+                                  setNewMessage(newValue);
+                                  setShowEmojiPicker(false);
+                                  inputRef.current?.focus();
+                                }}
+                                theme={Theme.AUTO}
+                                width={320}
+                                height={400}
+                                searchPlaceholder="Search emoji..."
+                                previewConfig={{ showPreview: false }}
+                              />
+                            </PopoverContent>
+                          </Popover>
                         </div>
                         <Button
                           size="icon"
