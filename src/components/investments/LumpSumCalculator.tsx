@@ -1,16 +1,19 @@
 import { useState, useMemo } from "react";
 import { motion } from "framer-motion";
-import { Wallet, TrendingUp, Calendar, Percent, IndianRupee } from "lucide-react";
+import { Wallet, TrendingUp, Calendar, Percent, IndianRupee, TrendingDown } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Slider } from "@/components/ui/slider";
+import { Switch } from "@/components/ui/switch";
 import { AnimatedCounter } from "./AnimatedCounter";
 
 export function LumpSumCalculator() {
   const [principal, setPrincipal] = useState(100000);
   const [duration, setDuration] = useState(10);
   const [expectedReturn, setExpectedReturn] = useState(12);
+  const [inflationRate, setInflationRate] = useState(6);
+  const [showRealReturns, setShowRealReturns] = useState(false);
 
   const calculations = useMemo(() => {
     const rate = expectedReturn / 100;
@@ -19,14 +22,35 @@ export function LumpSumCalculator() {
     const totalReturns = futureValue - principal;
     const returnPercent = (totalReturns / principal) * 100;
 
+    // Inflation-adjusted (real) values
+    const inflationFactor = Math.pow(1 + inflationRate / 100, duration);
+    const realFutureValue = futureValue / inflationFactor;
+    const realTotalReturns = realFutureValue - principal;
+    const realReturnPercent = (realTotalReturns / principal) * 100;
+
     return {
       futureValue: Math.round(futureValue),
       totalReturns: Math.round(totalReturns),
       returnPercent,
+      realFutureValue: Math.round(realFutureValue),
+      realTotalReturns: Math.round(realTotalReturns),
+      realReturnPercent,
     };
-  }, [principal, duration, expectedReturn]);
+  }, [principal, duration, expectedReturn, inflationRate]);
 
-  const investedPercent = (principal / calculations.futureValue) * 100;
+  const displayValues = showRealReturns
+    ? {
+        futureValue: calculations.realFutureValue,
+        totalReturns: calculations.realTotalReturns,
+        returnPercent: calculations.realReturnPercent,
+      }
+    : {
+        futureValue: calculations.futureValue,
+        totalReturns: calculations.totalReturns,
+        returnPercent: calculations.returnPercent,
+      };
+
+  const investedPercent = (principal / displayValues.futureValue) * 100;
   const returnsPercent = 100 - investedPercent;
 
   return (
@@ -133,25 +157,57 @@ export function LumpSumCalculator() {
           </div>
         </div>
 
+        {/* Inflation Adjustment Toggle */}
+        <div className="flex items-center justify-between p-3 rounded-lg bg-muted/50 border border-border/50">
+          <div className="flex items-center gap-2">
+            <TrendingDown className="h-4 w-4 text-orange-500" />
+            <div>
+              <Label className="text-sm font-medium">Inflation Adjusted</Label>
+              <p className="text-xs text-muted-foreground">Show real returns</p>
+            </div>
+          </div>
+          <div className="flex items-center gap-2">
+            {showRealReturns && (
+              <div className="flex items-center gap-1 bg-background rounded-lg px-2 py-0.5">
+                <Input
+                  type="number"
+                  value={inflationRate}
+                  onChange={(e) => setInflationRate(Math.max(0, Math.min(20, Number(e.target.value))))}
+                  className="w-10 h-6 text-xs border-0 bg-transparent p-0 text-right focus-visible:ring-0"
+                />
+                <span className="text-xs text-muted-foreground">%</span>
+              </div>
+            )}
+            <Switch checked={showRealReturns} onCheckedChange={setShowRealReturns} />
+          </div>
+        </div>
+
         {/* Results */}
         <motion.div
-          key={`${principal}-${duration}-${expectedReturn}`}
+          key={`${principal}-${duration}-${expectedReturn}-${showRealReturns}-${inflationRate}`}
           initial={{ opacity: 0.8, scale: 0.98 }}
           animate={{ opacity: 1, scale: 1 }}
           className="rounded-xl bg-gradient-to-br from-emerald-500/10 via-teal-500/10 to-cyan-500/10 p-4 space-y-4"
         >
+          {showRealReturns && (
+            <div className="flex items-center justify-center gap-1.5 text-xs text-orange-600 bg-orange-500/10 rounded-full px-3 py-1 w-fit mx-auto">
+              <TrendingDown className="h-3 w-3" />
+              Inflation Adjusted @ {inflationRate}%
+            </div>
+          )}
+
           {/* Visual Breakdown */}
           <div className="space-y-2">
             <div className="h-3 rounded-full overflow-hidden bg-muted flex">
               <motion.div
                 initial={{ width: 0 }}
-                animate={{ width: `${investedPercent}%` }}
+                animate={{ width: `${Math.max(0, investedPercent)}%` }}
                 transition={{ duration: 0.5, ease: "easeOut" }}
                 className="bg-emerald-500 rounded-l-full"
               />
               <motion.div
                 initial={{ width: 0 }}
-                animate={{ width: `${returnsPercent}%` }}
+                animate={{ width: `${Math.max(0, returnsPercent)}%` }}
                 transition={{ duration: 0.5, ease: "easeOut", delay: 0.2 }}
                 className="bg-violet-500 rounded-r-full"
               />
@@ -159,20 +215,22 @@ export function LumpSumCalculator() {
             <div className="flex justify-between text-xs">
               <span className="flex items-center gap-1.5">
                 <span className="w-2 h-2 rounded-full bg-emerald-500" />
-                Principal ({investedPercent.toFixed(0)}%)
+                Principal ({Math.max(0, investedPercent).toFixed(0)}%)
               </span>
               <span className="flex items-center gap-1.5">
                 <span className="w-2 h-2 rounded-full bg-violet-500" />
-                Returns ({returnsPercent.toFixed(0)}%)
+                Returns ({Math.max(0, returnsPercent).toFixed(0)}%)
               </span>
             </div>
           </div>
 
           {/* Future Value */}
           <div className="text-center py-2">
-            <p className="text-xs text-muted-foreground mb-1">Projected Value</p>
+            <p className="text-xs text-muted-foreground mb-1">
+              {showRealReturns ? "Real Value (Today's Money)" : "Projected Value"}
+            </p>
             <p className="text-2xl font-bold text-foreground">
-              <AnimatedCounter value={calculations.futureValue} prefix="₹" />
+              <AnimatedCounter value={displayValues.futureValue} prefix="₹" />
             </p>
           </div>
 
@@ -190,16 +248,16 @@ export function LumpSumCalculator() {
             <div className="bg-background/50 rounded-lg p-2.5 text-center">
               <div className="flex items-center justify-center gap-1 mb-1">
                 <TrendingUp className="h-3.5 w-3.5 text-violet-500" />
-                <span className="text-xs text-muted-foreground">Returns</span>
+                <span className="text-xs text-muted-foreground">{showRealReturns ? "Real Returns" : "Returns"}</span>
               </div>
-              <p className="font-semibold text-sm text-violet-600">
-                +₹{calculations.totalReturns.toLocaleString("en-IN")}
+              <p className={`font-semibold text-sm ${displayValues.totalReturns >= 0 ? 'text-violet-600' : 'text-red-500'}`}>
+                {displayValues.totalReturns >= 0 ? '+' : ''}₹{displayValues.totalReturns.toLocaleString("en-IN")}
               </p>
             </div>
           </div>
 
           <p className="text-center text-xs text-muted-foreground">
-            {calculations.returnPercent.toFixed(0)}% total returns over {duration} years
+            {displayValues.returnPercent.toFixed(0)}% {showRealReturns ? "real" : "total"} returns over {duration} years
           </p>
         </motion.div>
       </CardContent>
