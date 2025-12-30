@@ -4,7 +4,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/use-toast";
-import { Settings, ScanBarcode, LogOut, User, Menu, UsersRound, TrendingUp, Wallet, Users } from "lucide-react";
+import { Settings, ScanBarcode, LogOut, User, Menu, UsersRound, TrendingUp, TrendingDown, Wallet, Users, Minus } from "lucide-react";
 import { Session } from "@supabase/supabase-js";
 import { BarcodeScanner } from "@/components/BarcodeScanner";
 import { GroupSpace, PersonalSpace } from "@/components/spaces";
@@ -52,6 +52,11 @@ const Dashboard = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [totalBalance, setTotalBalance] = useState<number>(0);
   const [investmentsValue, setInvestmentsValue] = useState<number>(0);
+  const [spendingTrend, setSpendingTrend] = useState<{ current: number; previous: number; percentChange: number }>({
+    current: 0,
+    previous: 0,
+    percentChange: 0,
+  });
 
   // Handle scroll to show/hide navbar
   useEffect(() => {
@@ -140,16 +145,49 @@ const Dashboard = () => {
 
   const fetchQuickStats = async () => {
     try {
+      // Get current month and last month date ranges
+      const now = new Date();
+      const currentMonthStart = new Date(now.getFullYear(), now.getMonth(), 1);
+      const lastMonthStart = new Date(now.getFullYear(), now.getMonth() - 1, 1);
+      const lastMonthEnd = new Date(now.getFullYear(), now.getMonth(), 0);
+
       // Fetch personal transactions balance
       const { data: transactions } = await supabase
         .from("personal_transactions")
-        .select("amount, type");
+        .select("amount, type, transaction_date");
       
       if (transactions) {
         const balance = transactions.reduce((acc, t) => {
           return t.type === "income" ? acc + Number(t.amount) : acc - Number(t.amount);
         }, 0);
         setTotalBalance(balance);
+
+        // Calculate current month spending
+        const currentMonthSpending = transactions
+          .filter(t => {
+            const date = new Date(t.transaction_date);
+            return t.type === "expense" && date >= currentMonthStart;
+          })
+          .reduce((acc, t) => acc + Number(t.amount), 0);
+
+        // Calculate last month spending
+        const lastMonthSpending = transactions
+          .filter(t => {
+            const date = new Date(t.transaction_date);
+            return t.type === "expense" && date >= lastMonthStart && date <= lastMonthEnd;
+          })
+          .reduce((acc, t) => acc + Number(t.amount), 0);
+
+        // Calculate percent change
+        const percentChange = lastMonthSpending > 0 
+          ? ((currentMonthSpending - lastMonthSpending) / lastMonthSpending) * 100 
+          : 0;
+
+        setSpendingTrend({
+          current: currentMonthSpending,
+          previous: lastMonthSpending,
+          percentChange,
+        });
       }
 
       // Fetch investments total value
@@ -350,6 +388,49 @@ const Dashboard = () => {
                             className="text-sm font-bold text-foreground"
                             duration={1.2}
                           />
+                        </div>
+                      </div>
+                    )}
+
+                    {/* Monthly Spending Trend */}
+                    {isMenuOpen && (
+                      <div className="mt-3 bg-muted/30 rounded-lg p-3">
+                        <div className="flex items-center justify-between mb-2">
+                          <span className="text-xs text-muted-foreground">Monthly Spending</span>
+                          {spendingTrend.percentChange !== 0 ? (
+                            <div className={cn(
+                              "flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium",
+                              spendingTrend.percentChange > 0 
+                                ? "bg-destructive/15 text-destructive" 
+                                : "bg-emerald-500/15 text-emerald-600 dark:text-emerald-400"
+                            )}>
+                              {spendingTrend.percentChange > 0 ? (
+                                <TrendingUp className="h-3 w-3" />
+                              ) : (
+                                <TrendingDown className="h-3 w-3" />
+                              )}
+                              <span>{Math.abs(spendingTrend.percentChange).toFixed(0)}%</span>
+                            </div>
+                          ) : (
+                            <div className="flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium bg-muted text-muted-foreground">
+                              <Minus className="h-3 w-3" />
+                              <span>0%</span>
+                            </div>
+                          )}
+                        </div>
+                        <div className="flex items-baseline justify-between">
+                          <div>
+                            <AnimatedCounter 
+                              value={spendingTrend.current} 
+                              prefix="₹"
+                              className="text-base font-bold text-foreground"
+                              duration={1}
+                            />
+                            <span className="text-xs text-muted-foreground ml-1">this month</span>
+                          </div>
+                          <div className="text-right">
+                            <span className="text-xs text-muted-foreground">vs ₹{spendingTrend.previous.toLocaleString("en-IN")}</span>
+                          </div>
                         </div>
                       </div>
                     )}
