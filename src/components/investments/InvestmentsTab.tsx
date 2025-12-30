@@ -3,7 +3,6 @@ import { motion, AnimatePresence } from "framer-motion";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { Button } from "@/components/ui/button";
-import { Card } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import {
   AlertDialog,
@@ -19,14 +18,17 @@ import {
   Plus,
   TrendingUp,
   TrendingDown,
-  Wallet,
   BarChart3,
   PieChart,
   Loader2,
+  Sparkles,
 } from "lucide-react";
 import { InvestmentCard, type Investment } from "./InvestmentCard";
 import { AddInvestmentDrawer } from "./AddInvestmentDrawer";
 import { InvestmentDetailSheet } from "./InvestmentDetailSheet";
+import { AnimatedCounter } from "./AnimatedCounter";
+import { PortfolioAllocationChart } from "./PortfolioAllocationChart";
+import { QuickStatsGrid } from "./QuickStatsGrid";
 
 type InvestmentType = "all" | "sip" | "etf" | "stock" | "mutual_fund" | "other";
 
@@ -125,34 +127,68 @@ export function InvestmentsTab() {
   }
 
   return (
-    <div className="space-y-6">
-      {/* Compact Portfolio Summary */}
+    <div className="space-y-4">
+      {/* Enhanced Portfolio Summary */}
       <motion.div
         initial={{ opacity: 0, y: 10 }}
         animate={{ opacity: 1, y: 0 }}
-        className="relative overflow-hidden rounded-xl p-3 bg-gradient-to-br from-violet-600 via-purple-600 to-indigo-700 text-white"
+        className="relative overflow-hidden rounded-2xl p-4 bg-gradient-to-br from-violet-600 via-purple-600 to-indigo-700 text-white"
       >
+        {/* Decorative elements */}
+        <div className="absolute -right-8 -top-8 w-32 h-32 rounded-full bg-white/10 blur-xl" />
+        <div className="absolute -left-4 -bottom-4 w-24 h-24 rounded-full bg-white/5" />
+        <div className="absolute right-1/3 top-1/2 w-2 h-2 rounded-full bg-white/30 animate-pulse" />
+        
         <div className="relative z-10">
-          <div className="flex items-center justify-between mb-1">
-            <div className="flex items-center gap-1.5">
-              <BarChart3 className="h-4 w-4 opacity-80" />
-              <p className="text-sm opacity-80">Portfolio</p>
+          <div className="flex items-center justify-between mb-2">
+            <div className="flex items-center gap-2">
+              <motion.div
+                initial={{ rotate: 0 }}
+                animate={{ rotate: 360 }}
+                transition={{ duration: 20, repeat: Infinity, ease: "linear" }}
+                className="p-1.5 rounded-lg bg-white/20"
+              >
+                <Sparkles className="h-4 w-4" />
+              </motion.div>
+              <p className="text-sm font-medium opacity-90">Total Portfolio Value</p>
             </div>
-            <div className={`flex items-center gap-1 text-xs px-2 py-0.5 rounded-full ${isPositive ? 'bg-emerald-500/20' : 'bg-rose-500/20'}`}>
-              {isPositive ? <TrendingUp className="h-3 w-3" /> : <TrendingDown className="h-3 w-3" />}
+            <motion.div 
+              initial={{ scale: 0.9 }}
+              animate={{ scale: 1 }}
+              className={`flex items-center gap-1.5 text-sm px-3 py-1 rounded-full font-medium ${isPositive ? 'bg-emerald-500/30' : 'bg-rose-500/30'}`}
+            >
+              {isPositive ? <TrendingUp className="h-3.5 w-3.5" /> : <TrendingDown className="h-3.5 w-3.5" />}
               {isPositive ? "+" : ""}{totalReturnsPercent.toFixed(1)}%
-            </div>
+            </motion.div>
           </div>
-          <h2 className="text-2xl font-bold mb-1">₹{totalCurrentValue.toLocaleString()}</h2>
-          <div className="flex gap-4 text-sm opacity-80">
-            <span>Invested: ₹{totalInvested.toLocaleString()}</span>
-            <span className={isPositive ? "text-emerald-200" : "text-rose-200"}>
-              Returns: {isPositive ? "+" : ""}₹{Math.abs(totalReturns).toLocaleString()}
-            </span>
+          
+          <h2 className="text-3xl font-bold mb-3">
+            <AnimatedCounter value={totalCurrentValue} prefix="₹" />
+          </h2>
+          
+          <div className="grid grid-cols-2 gap-3">
+            <div className="bg-white/10 rounded-xl p-2.5 backdrop-blur-sm">
+              <p className="text-xs opacity-70 mb-0.5">Invested</p>
+              <p className="font-semibold">
+                <AnimatedCounter value={totalInvested} prefix="₹" />
+              </p>
+            </div>
+            <div className={`rounded-xl p-2.5 backdrop-blur-sm ${isPositive ? 'bg-emerald-500/20' : 'bg-rose-500/20'}`}>
+              <p className="text-xs opacity-70 mb-0.5">Returns</p>
+              <p className="font-semibold">
+                {isPositive ? "+" : "-"}
+                <AnimatedCounter value={Math.abs(totalReturns)} prefix="₹" />
+              </p>
+            </div>
           </div>
         </div>
-        <div className="absolute -right-4 -top-4 w-16 h-16 rounded-full bg-white/10" />
       </motion.div>
+
+      {/* Quick Stats Grid */}
+      {investments.length > 0 && <QuickStatsGrid investments={investments} />}
+
+      {/* Portfolio Allocation Chart */}
+      {investments.length > 0 && <PortfolioAllocationChart investments={investments} />}
 
       {/* Type Tabs */}
       <Tabs value={activeType} onValueChange={(v) => setActiveType(v as InvestmentType)}>
