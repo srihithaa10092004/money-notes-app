@@ -9,18 +9,22 @@ import {
   Percent, 
   IndianRupee,
   ArrowRight,
-  Trophy
+  Trophy,
+  TrendingDown
 } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Slider } from "@/components/ui/slider";
+import { Switch } from "@/components/ui/switch";
 import { AnimatedCounter } from "./AnimatedCounter";
 
 export function SIPvsLumpSumComparison() {
   const [monthlyAmount, setMonthlyAmount] = useState(10000);
   const [duration, setDuration] = useState(10);
   const [expectedReturn, setExpectedReturn] = useState(12);
+  const [inflationRate, setInflationRate] = useState(6);
+  const [showRealReturns, setShowRealReturns] = useState(false);
 
   const calculations = useMemo(() => {
     const monthlyRate = expectedReturn / 12 / 100;
@@ -42,25 +46,72 @@ export function SIPvsLumpSumComparison() {
     const difference = lumpSumFutureValue - sipFutureValue;
     const winner = difference > 0 ? 'lumpsum' : 'sip';
 
+    // Inflation-adjusted (real) values
+    const inflationFactor = Math.pow(1 + inflationRate / 100, duration);
+    const realSipFutureValue = sipFutureValue / inflationFactor;
+    const realSipReturns = realSipFutureValue - sipTotalInvested;
+    const realLumpSumFutureValue = lumpSumFutureValue / inflationFactor;
+    const realLumpSumReturns = realLumpSumFutureValue - lumpSumPrincipal;
+    const realDifference = realLumpSumFutureValue - realSipFutureValue;
+    const realWinner = realDifference > 0 ? 'lumpsum' : 'sip';
+
     return {
       sip: {
         invested: sipTotalInvested,
         futureValue: Math.round(sipFutureValue),
         returns: Math.round(sipReturns),
         returnPercent: (sipReturns / sipTotalInvested) * 100,
+        realFutureValue: Math.round(realSipFutureValue),
+        realReturns: Math.round(realSipReturns),
+        realReturnPercent: (realSipReturns / sipTotalInvested) * 100,
       },
       lumpSum: {
         invested: lumpSumPrincipal,
         futureValue: Math.round(lumpSumFutureValue),
         returns: Math.round(lumpSumReturns),
         returnPercent: (lumpSumReturns / lumpSumPrincipal) * 100,
+        realFutureValue: Math.round(realLumpSumFutureValue),
+        realReturns: Math.round(realLumpSumReturns),
+        realReturnPercent: (realLumpSumReturns / lumpSumPrincipal) * 100,
       },
       difference: Math.abs(Math.round(difference)),
       winner,
+      realDifference: Math.abs(Math.round(realDifference)),
+      realWinner,
     };
-  }, [monthlyAmount, duration, expectedReturn]);
+  }, [monthlyAmount, duration, expectedReturn, inflationRate]);
 
-  const maxValue = Math.max(calculations.sip.futureValue, calculations.lumpSum.futureValue);
+  const displayValues = showRealReturns
+    ? {
+        sip: {
+          futureValue: calculations.sip.realFutureValue,
+          returns: calculations.sip.realReturns,
+          returnPercent: calculations.sip.realReturnPercent,
+        },
+        lumpSum: {
+          futureValue: calculations.lumpSum.realFutureValue,
+          returns: calculations.lumpSum.realReturns,
+          returnPercent: calculations.lumpSum.realReturnPercent,
+        },
+        difference: calculations.realDifference,
+        winner: calculations.realWinner,
+      }
+    : {
+        sip: {
+          futureValue: calculations.sip.futureValue,
+          returns: calculations.sip.returns,
+          returnPercent: calculations.sip.returnPercent,
+        },
+        lumpSum: {
+          futureValue: calculations.lumpSum.futureValue,
+          returns: calculations.lumpSum.returns,
+          returnPercent: calculations.lumpSum.returnPercent,
+        },
+        difference: calculations.difference,
+        winner: calculations.winner,
+      };
+
+  const maxValue = Math.max(displayValues.sip.futureValue, displayValues.lumpSum.futureValue);
 
   return (
     <Card className="overflow-hidden">
@@ -158,6 +209,31 @@ export function SIPvsLumpSumComparison() {
           </div>
         </div>
 
+        {/* Inflation Adjustment Toggle */}
+        <div className="flex items-center justify-between p-3 rounded-lg bg-muted/50 border border-border/50">
+          <div className="flex items-center gap-2">
+            <TrendingDown className="h-4 w-4 text-orange-500" />
+            <div>
+              <Label className="text-sm font-medium">Inflation Adjusted</Label>
+              <p className="text-xs text-muted-foreground">Show real returns</p>
+            </div>
+          </div>
+          <div className="flex items-center gap-2">
+            {showRealReturns && (
+              <div className="flex items-center gap-1 bg-background rounded-lg px-2 py-0.5">
+                <Input
+                  type="number"
+                  value={inflationRate}
+                  onChange={(e) => setInflationRate(Math.max(0, Math.min(20, Number(e.target.value))))}
+                  className="w-10 h-6 text-xs border-0 bg-transparent p-0 text-right focus-visible:ring-0"
+                />
+                <span className="text-xs text-muted-foreground">%</span>
+              </div>
+            )}
+            <Switch checked={showRealReturns} onCheckedChange={setShowRealReturns} />
+          </div>
+        </div>
+
         {/* Total Investment Info */}
         <div className="bg-muted/50 rounded-lg p-3 text-center">
           <p className="text-xs text-muted-foreground mb-1">Total Investment (Same for both)</p>
@@ -169,11 +245,18 @@ export function SIPvsLumpSumComparison() {
 
         {/* Comparison Results */}
         <motion.div
-          key={`${monthlyAmount}-${duration}-${expectedReturn}`}
+          key={`${monthlyAmount}-${duration}-${expectedReturn}-${showRealReturns}-${inflationRate}`}
           initial={{ opacity: 0.8 }}
           animate={{ opacity: 1 }}
           className="space-y-4"
         >
+          {showRealReturns && (
+            <div className="flex items-center justify-center gap-1.5 text-xs text-orange-600 bg-orange-500/10 rounded-full px-3 py-1 w-fit mx-auto">
+              <TrendingDown className="h-3 w-3" />
+              Inflation Adjusted @ {inflationRate}%
+            </div>
+          )}
+
           {/* Visual Bar Comparison */}
           <div className="space-y-3">
             {/* SIP Bar */}
@@ -182,11 +265,11 @@ export function SIPvsLumpSumComparison() {
                 <span className="flex items-center gap-1.5 font-medium">
                   <PiggyBank className="h-4 w-4 text-violet-500" />
                   SIP
-                  {calculations.winner === 'sip' && (
+                  {displayValues.winner === 'sip' && (
                     <Trophy className="h-3.5 w-3.5 text-amber-500" />
                   )}
                 </span>
-                <span className="font-semibold">₹{calculations.sip.futureValue.toLocaleString("en-IN")}</span>
+                <span className="font-semibold">₹{displayValues.sip.futureValue.toLocaleString("en-IN")}</span>
               </div>
               <div className="h-8 rounded-lg overflow-hidden bg-muted flex">
                 <motion.div
@@ -199,11 +282,11 @@ export function SIPvsLumpSumComparison() {
                 </motion.div>
                 <motion.div
                   initial={{ width: 0 }}
-                  animate={{ width: `${(calculations.sip.returns / maxValue) * 100}%` }}
+                  animate={{ width: `${Math.max(0, displayValues.sip.returns) / maxValue * 100}%` }}
                   transition={{ duration: 0.5, delay: 0.2 }}
                   className="bg-violet-400 flex items-center justify-center"
                 >
-                  <span className="text-[10px] text-white font-medium px-1">+{calculations.sip.returnPercent.toFixed(0)}%</span>
+                  <span className="text-[10px] text-white font-medium px-1">{displayValues.sip.returnPercent >= 0 ? '+' : ''}{displayValues.sip.returnPercent.toFixed(0)}%</span>
                 </motion.div>
               </div>
             </div>
@@ -214,11 +297,11 @@ export function SIPvsLumpSumComparison() {
                 <span className="flex items-center gap-1.5 font-medium">
                   <Wallet className="h-4 w-4 text-emerald-500" />
                   Lump Sum
-                  {calculations.winner === 'lumpsum' && (
+                  {displayValues.winner === 'lumpsum' && (
                     <Trophy className="h-3.5 w-3.5 text-amber-500" />
                   )}
                 </span>
-                <span className="font-semibold">₹{calculations.lumpSum.futureValue.toLocaleString("en-IN")}</span>
+                <span className="font-semibold">₹{displayValues.lumpSum.futureValue.toLocaleString("en-IN")}</span>
               </div>
               <div className="h-8 rounded-lg overflow-hidden bg-muted flex">
                 <motion.div
@@ -231,11 +314,11 @@ export function SIPvsLumpSumComparison() {
                 </motion.div>
                 <motion.div
                   initial={{ width: 0 }}
-                  animate={{ width: `${(calculations.lumpSum.returns / maxValue) * 100}%` }}
+                  animate={{ width: `${Math.max(0, displayValues.lumpSum.returns) / maxValue * 100}%` }}
                   transition={{ duration: 0.5, delay: 0.2 }}
                   className="bg-emerald-400 flex items-center justify-center"
                 >
-                  <span className="text-[10px] text-white font-medium px-1">+{calculations.lumpSum.returnPercent.toFixed(0)}%</span>
+                  <span className="text-[10px] text-white font-medium px-1">{displayValues.lumpSum.returnPercent >= 0 ? '+' : ''}{displayValues.lumpSum.returnPercent.toFixed(0)}%</span>
                 </motion.div>
               </div>
             </div>
@@ -244,44 +327,44 @@ export function SIPvsLumpSumComparison() {
           {/* Detailed Comparison Grid */}
           <div className="grid grid-cols-3 gap-2 text-center">
             <div className="bg-violet-500/10 rounded-lg p-2.5">
-              <p className="text-[10px] text-muted-foreground mb-0.5">SIP Returns</p>
-              <p className="text-sm font-semibold text-violet-600">
-                +₹{calculations.sip.returns.toLocaleString("en-IN")}
+              <p className="text-[10px] text-muted-foreground mb-0.5">{showRealReturns ? "Real SIP Returns" : "SIP Returns"}</p>
+              <p className={`text-sm font-semibold ${displayValues.sip.returns >= 0 ? 'text-violet-600' : 'text-red-500'}`}>
+                {displayValues.sip.returns >= 0 ? '+' : ''}₹{displayValues.sip.returns.toLocaleString("en-IN")}
               </p>
             </div>
             <div className="bg-muted rounded-lg p-2.5 flex flex-col items-center justify-center">
               <ArrowRight className="h-4 w-4 text-muted-foreground mb-0.5" />
               <p className="text-[10px] text-muted-foreground">Difference</p>
               <p className="text-xs font-semibold">
-                ₹{calculations.difference.toLocaleString("en-IN")}
+                ₹{displayValues.difference.toLocaleString("en-IN")}
               </p>
             </div>
             <div className="bg-emerald-500/10 rounded-lg p-2.5">
-              <p className="text-[10px] text-muted-foreground mb-0.5">Lump Sum Returns</p>
-              <p className="text-sm font-semibold text-emerald-600">
-                +₹{calculations.lumpSum.returns.toLocaleString("en-IN")}
+              <p className="text-[10px] text-muted-foreground mb-0.5">{showRealReturns ? "Real Lump Sum Returns" : "Lump Sum Returns"}</p>
+              <p className={`text-sm font-semibold ${displayValues.lumpSum.returns >= 0 ? 'text-emerald-600' : 'text-red-500'}`}>
+                {displayValues.lumpSum.returns >= 0 ? '+' : ''}₹{displayValues.lumpSum.returns.toLocaleString("en-IN")}
               </p>
             </div>
           </div>
 
           {/* Winner Insight */}
           <div className={`rounded-lg p-3 text-center ${
-            calculations.winner === 'lumpsum' 
+            displayValues.winner === 'lumpsum' 
               ? 'bg-emerald-500/10 border border-emerald-500/20' 
               : 'bg-violet-500/10 border border-violet-500/20'
           }`}>
             <p className="text-sm">
               <span className="font-semibold">
-                {calculations.winner === 'lumpsum' ? 'Lump Sum' : 'SIP'}
+                {displayValues.winner === 'lumpsum' ? 'Lump Sum' : 'SIP'}
               </span>
               {' '}gives you{' '}
               <span className="font-semibold">
-                ₹{calculations.difference.toLocaleString("en-IN")}
+                ₹{displayValues.difference.toLocaleString("en-IN")}
               </span>
-              {' '}more returns
+              {' '}more {showRealReturns ? "real " : ""}returns
             </p>
             <p className="text-xs text-muted-foreground mt-1">
-              {calculations.winner === 'lumpsum' 
+              {displayValues.winner === 'lumpsum' 
                 ? 'Lump sum benefits from compound growth on full amount from day one'
                 : 'SIP averages out market volatility with regular investments'
               }
