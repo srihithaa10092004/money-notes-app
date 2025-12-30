@@ -4,10 +4,10 @@ import { motion, AnimatePresence } from "framer-motion";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/use-toast";
-import { Settings, ScanBarcode, LogOut, User } from "lucide-react";
+import { Settings, ScanBarcode, LogOut, User, Menu, Users, Wallet } from "lucide-react";
 import { Session } from "@supabase/supabase-js";
 import { BarcodeScanner } from "@/components/BarcodeScanner";
-import { SpaceSwitcher, GroupSpace, PersonalSpace } from "@/components/spaces";
+import { GroupSpace, PersonalSpace } from "@/components/spaces";
 import { AnimatedLogo } from "@/components/AnimatedLogo";
 import { cn } from "@/lib/utils";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
@@ -19,6 +19,13 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { NotificationBell } from "@/components/notifications/NotificationBell";
+import {
+  Sheet,
+  SheetContent,
+  SheetHeader,
+  SheetTitle,
+  SheetTrigger,
+} from "@/components/ui/sheet";
 type Space = "groups" | "personal";
 type Group = {
   id: string;
@@ -41,6 +48,7 @@ const Dashboard = () => {
   const containerRef = useRef<HTMLDivElement>(null);
   const [isNavbarVisible, setIsNavbarVisible] = useState(true);
   const lastScrollY = useRef(0);
+  const [isMenuOpen, setIsMenuOpen] = useState(false);
 
   // Handle scroll to show/hide navbar
   useEffect(() => {
@@ -128,6 +136,7 @@ const Dashboard = () => {
   const handleSpaceChange = (space: Space) => {
     setDirection(space === "personal" ? 1 : -1);
     setActiveSpace(space);
+    setIsMenuOpen(false);
   };
 
   // Swipe gesture handling
@@ -193,6 +202,53 @@ const Dashboard = () => {
       >
         <div className="px-4 py-3 flex items-center justify-between">
           <div className="flex items-center gap-2">
+            {/* Hamburger Menu */}
+            <Sheet open={isMenuOpen} onOpenChange={setIsMenuOpen}>
+              <SheetTrigger asChild>
+                <Button variant="ghost" size="icon" className="h-9 w-9 rounded-full hover:bg-muted">
+                  <Menu className="h-5 w-5" />
+                </Button>
+              </SheetTrigger>
+              <SheetContent side="left" className="w-[280px] sm:w-[320px]">
+                <SheetHeader className="pb-4">
+                  <SheetTitle className="flex items-center gap-2">
+                    <AnimatedLogo size="sm" />
+                    <span>ExpenX</span>
+                  </SheetTitle>
+                </SheetHeader>
+                
+                <div className="space-y-2">
+                  <p className="text-xs font-medium text-muted-foreground uppercase tracking-wider px-2 mb-3">
+                    Spaces
+                  </p>
+                  <button
+                    onClick={() => handleSpaceChange("groups")}
+                    className={cn(
+                      "w-full flex items-center gap-3 px-3 py-3 rounded-lg transition-colors",
+                      activeSpace === "groups" 
+                        ? "bg-primary text-primary-foreground" 
+                        : "hover:bg-muted text-foreground"
+                    )}
+                  >
+                    <Users className="h-5 w-5" />
+                    <span className="font-medium">Group Space</span>
+                  </button>
+                  <button
+                    onClick={() => handleSpaceChange("personal")}
+                    className={cn(
+                      "w-full flex items-center gap-3 px-3 py-3 rounded-lg transition-colors",
+                      activeSpace === "personal" 
+                        ? "bg-primary text-primary-foreground" 
+                        : "hover:bg-muted text-foreground"
+                    )}
+                  >
+                    <Wallet className="h-5 w-5" />
+                    <span className="font-medium">Personal Space</span>
+                  </button>
+                </div>
+              </SheetContent>
+            </Sheet>
+            
             <AnimatedLogo size="sm" />
             <h1 className="text-lg font-bold text-foreground">ExpenX</h1>
           </div>
@@ -244,11 +300,6 @@ const Dashboard = () => {
 
       {/* Spacer for fixed header */}
       <div className="h-[72px]" />
-
-      {/* Space Switcher */}
-      <div className="px-4 pt-4 pb-2">
-        <SpaceSwitcher activeSpace={activeSpace} onSpaceChange={handleSpaceChange} />
-      </div>
 
       {/* Space Content with Slide Animation */}
       <main ref={containerRef} className="px-4 py-4 pb-24 overflow-hidden" onTouchStart={onTouchStart} onTouchMove={onTouchMove} onTouchEnd={onTouchEnd}>
