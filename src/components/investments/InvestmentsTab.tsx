@@ -31,6 +31,7 @@ import { PortfolioAllocationChart } from "./PortfolioAllocationChart";
 import { QuickStatsGrid } from "./QuickStatsGrid";
 import { GoalProgressCard } from "./GoalProgressCard";
 import { SIPCalculator } from "./SIPCalculator";
+import { LumpSumCalculator } from "./LumpSumCalculator";
 
 type InvestmentType = "all" | "sip" | "etf" | "stock" | "mutual_fund" | "other";
 
@@ -195,8 +196,11 @@ export function InvestmentsTab() {
       {/* Goal Progress Card */}
       {investments.length > 0 && <GoalProgressCard investments={investments} />}
 
-      {/* SIP Calculator */}
-      <SIPCalculator />
+      {/* Calculators */}
+      <div className="grid gap-4 md:grid-cols-2">
+        <SIPCalculator />
+        <LumpSumCalculator />
+      </div>
 
       {/* Type Tabs */}
       <Tabs value={activeType} onValueChange={(v) => setActiveType(v as InvestmentType)}>
